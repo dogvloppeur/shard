@@ -32,8 +32,13 @@ The executable is in `shard/shard`.
 
 ## Syntax
 a                           -> integer
+
 a + b
+
 a - b
+
 a * b
+
 a / b
+
 a; b; c                     -> statement list
