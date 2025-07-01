@@ -14,21 +14,24 @@
 git clone https://github.com/shard-language/shard
 ```
 
-2. Execute the configuration script if you don't have GCC installed
+2. Make the code (don't forget to install `make`)
 ```bash
 cd shard
 cd scripts
-chmod +x config.sh
-./config.sh
+make
 ```
-
-3. Execute the build script
-```bash
-chmod +x build.sh
-./build.sh
-```
-
 The executable is in `shard/shard`.
+
+3. (optional) Installation
+```bash
+chmod +x install.sh
+su                      # or sudo/doas...
+./install.sh
+```
+You can now run *Shard* by simply typing `shard` in your terminal!
+
+## Contributing
+Everyone is free to contribute, but please read [the contribution guide](CONTRIBUTING.md) before.
 
 ## Syntax
 a                           -> integer
