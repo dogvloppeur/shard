@@ -4,6 +4,8 @@
 *Shard* is an interpreted programming language in active development.
 
 ## Features
+- Division by zero handling
+- Floating numbers support
 - Arithmetic expressions
 - Operators precedences
 - Statement lists
@@ -34,7 +36,7 @@ You can now run *Shard* by simply typing `shard` in your terminal!
 Everyone is free to contribute, but please read [the contribution guide](CONTRIBUTING.md) before.
 
 ## Syntax
-a                           -> integer
+a                           -> integer / float
 
 a + b
 

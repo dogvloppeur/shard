@@ -57,6 +57,14 @@ ASTNode *parse_factor(Parser *parser)
 
         return node;
     }
+    else if (parser->current_token.type == T_FLOAT)
+    {
+        float value = atof(parser->current_token.value);
+        ASTNode *node = AST_new_float(value, parser->current_token.line, parser->current_token.column);
+        parser_advance(parser);
+
+        return node;
+    }
     else if (parser->current_token.type == T_LPAR)
     {
         parser_advance(parser);

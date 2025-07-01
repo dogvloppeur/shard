@@ -2,4 +2,4 @@
 
 #include "parser/include/ast.h"
 
-int eval(ASTNode *node);
+float eval(ASTNode *node);

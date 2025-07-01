@@ -10,5 +10,6 @@ const char *token_type_names[] = {
     "T_RPAR",
     "T_EOF",
     "T_UNKNOWN",
-    "T_SEMI"
+    "T_SEMI",
+    "T_FLOAT"
 };

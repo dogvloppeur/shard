@@ -1,14 +1,22 @@
 #include "include/repl.h"
-#include "parser/include/ast.h"
+#include <parser/include/ast.h>
 #include "parser/include/parser.h"
 #include "eval/include/eval.h"
+#include "repl/include/info.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+void repl_welcome()
+{
+    printf("%s version %s released under %s license\n", LANG_NAME, LANG_VERSION, LANG_LICENSE);
+}
+
 int main()
 {
     char line[MAX_CHARS_PER_LINE];
+
+    repl_welcome();
 
     while (1)
     {
@@ -26,18 +34,20 @@ int main()
         strcpy(source + 1, line);
 
         ASTNode *ast = parse(source);
-        int result = eval(ast);
 
         if (ast->type == AST_STATEMENT_LIST) {
             ASTNode *current = ast;
-            while (current) {
-                int result = eval(current->statement_list.first);
-                printf("%d\n", result);
+            while (current)
+            {
+                float result = eval(current->statement_list.first);
+                printf("%g\n", result);
                 current = current->statement_list.next;
             }
-        } else {
-            int result = eval(ast);
-            printf("%d\n", result);
+        }
+        else
+        {
+            float result = eval(ast);
+            printf("%g\n", result);
         }
 
         AST_free(ast);

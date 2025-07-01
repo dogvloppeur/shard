@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int eval(ASTNode *node)
+float eval(ASTNode *node)
 {
     if (!node)
     {
@@ -18,21 +18,31 @@ int eval(ASTNode *node)
 
         case AST_BINOP:
         {
-            int left = eval(node->binop.left);
-            int right = eval(node->binop.right);
+            float left = eval(node->binop.left);
+            float right = eval(node->binop.right);
 
             switch ((int)node->binop.operator)
             {
                 case BINOP_PLUS: return left + right;
                 case BINOP_MINUS: return left - right;
                 case BINOP_TIMES: return left * right;
-                case BINOP_DIVIDE: return left / right;
+                case BINOP_DIVIDE:
+                    if (right == 0)
+                    {
+                        fprintf(stderr, "Division by zero\n");
+                        exit(1);
+                    }
+                    return left / right;
+
+                default:
+                    fprintf(stderr, "Unknow binary operator\n");
+                    exit(1);
             }
         }
 
         case AST_STATEMENT_LIST:
         {
-            int result = 0;
+            float result = 0;
 
             ASTNode *current = node;
             while (current)
@@ -43,6 +53,9 @@ int eval(ASTNode *node)
 
             return result;
         }
+
+        case AST_FLOAT:
+            return node->_float.value;
 
         default:
             fprintf(stderr, "Unknow AST node in eval\n");

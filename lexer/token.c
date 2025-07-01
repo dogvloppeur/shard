@@ -27,7 +27,21 @@ Token get_next_token(Cursor *cursor)
         size_t start = cursor->position;
         while (isdigit(cursor->current_char))
             cursor_advance(cursor);
-        token.type = T_INTEGER;
+        
+        if (cursor->current_char == '.' && isdigit(cursor->source[cursor->position + 1]))
+        {
+            cursor_advance(cursor);
+
+            while (isdigit(cursor->current_char))
+                cursor_advance(cursor);
+
+            token.type = T_FLOAT;
+        }
+        else
+        {
+            token.type = T_INTEGER;
+        }
+
         token.length = cursor->position - start;
         return token;
     }
