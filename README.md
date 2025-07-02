@@ -4,6 +4,7 @@
 *Shard* is an interpreted programming language in active development.
 
 ## Features
+- Complete CLI
 - Dynamic and strongly typed variables
 - Division by zero handling
 - Floating numbers support
@@ -36,10 +37,31 @@ You can now run *Shard* by simply typing `shard` in your terminal!
 ## Contributing
 Everyone is free to contribute, but please read [the contribution guide](CONTRIBUTING.md) before.
 
-## Using the REPL
+## Using the CLI
 Once you have installed *Shard*, run `shard` in your terminal.
-Now, you should be able to input code.
+Now, you should be able to input code. This is what we call the *REPL*.
 
+You can enter the REPL without giving an option.
+To see a list of options, type
+```bash
+shard -h
+# or
+shard --help
+```
+
+To execute code without using the REPL, type
+```bash
+shard -c <your code>
+```
+
+To execute code from a source file, type
+```bash
+shard -f <filepath>
+# or
+shard --file <filepath>
+```
+
+## Language rules
 Let's see the language rules:
 1. A variable must be declared like this: `var name = value`
 2. You cannot redeclare a variable
