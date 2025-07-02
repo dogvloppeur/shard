@@ -1,9 +1,11 @@
 #include "include/eval.h"
+#include "include/variable.h"
 #include "parser/include/ast.h"
+#include "include/env.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-float eval(ASTNode *node)
+ShdValue eval(Env *env, ASTNode *node)
 {
     if (!node)
     {
@@ -14,51 +16,188 @@ float eval(ASTNode *node)
     switch ((int)node->type)
     {
         case AST_INTEGER:
-            return node->integer.value;
+        {
+            ShdValue value;
+            value.value_type = VALUE_INTEGER;
+            value.value_data.int_value = node->integer.value;
+            return value;
+        }
+
+        case AST_FLOAT:
+        {
+            ShdValue value;
+            value.value_type = VALUE_FLOAT;
+            value.value_data.float_value = node->_float.value;
+            return value;
+        }
 
         case AST_BINOP:
         {
-            float left = eval(node->binop.left);
-            float right = eval(node->binop.right);
+            ShdValue left = eval(env, node->binop.left);
+            ShdValue right = eval(env, node->binop.right);
 
-            switch ((int)node->binop.operator)
+            if (left.value_type == VALUE_INTEGER && right.value_type == VALUE_INTEGER)
             {
-                case BINOP_PLUS: return left + right;
-                case BINOP_MINUS: return left - right;
-                case BINOP_TIMES: return left * right;
-                case BINOP_DIVIDE:
-                    if (right == 0)
-                    {
-                        fprintf(stderr, "Division by zero\n");
-                        exit(1);
-                    }
-                    return left / right;
+                int l = left.value_data.int_value;
+                int r = right.value_data.int_value;
+                ShdValue result = { .value_type = VALUE_INTEGER };
 
-                default:
-                    fprintf(stderr, "Unknow binary operator\n");
-                    exit(1);
+                switch ((int)node->binop.operator)
+                {
+                    case BINOP_PLUS: result.value_data.int_value = l + r; break;
+                    case BINOP_MINUS: result.value_data.int_value = l - r; break;
+                    case BINOP_TIMES: result.value_data.int_value = l * r; break;
+                    case BINOP_DIVIDE:
+                        if (r == 0)
+                        {
+                            fprintf(stderr, "Division by zero\n");
+                            exit(1);
+                        }
+                        result.value_data.int_value = l / r;
+                        break;
+                    default:
+                        fprintf(stderr, "Unknown binary operator\n");
+                        exit(1);
+                }
+
+                return result;
             }
+            else
+            {
+                float l = (left.value_type == VALUE_INTEGER) ? left.value_data.int_value : left.value_data.float_value;
+                float r = (right.value_type == VALUE_INTEGER) ? right.value_data.int_value : right.value_data.float_value;
+                ShdValue result = { .value_type = VALUE_FLOAT };
+
+                switch ((int)node->binop.operator)
+                {
+                    case BINOP_PLUS: result.value_data.float_value = l + r; break;
+                    case BINOP_MINUS: result.value_data.float_value = l - r; break;
+                    case BINOP_TIMES: result.value_data.float_value = l * r; break;
+                    case BINOP_DIVIDE:
+                        if (r == 0.0f)
+                        {
+                            fprintf(stderr, "Division by zero\n");
+                            exit(1);
+                        }
+                        result.value_data.float_value = l / r;
+                        break;
+                    default:
+                        fprintf(stderr, "Unknown binary operator\n");
+                        exit(1);
+                }
+
+                return result;
+            }
+        }
+
+        case AST_UNOP:
+        {
+            ShdValue value = eval(env, node->unop.value);
+
+            if (value.value_type == VALUE_INTEGER)
+            {
+                int v = value.value_data.int_value;
+                ShdValue result = { .value_type = VALUE_INTEGER };
+
+                switch ((int)node->unop.operator)
+                {
+                    case UNOP_PLUS: result.value_data.int_value = v; break;
+                    case UNOP_MINUS: result.value_data.int_value = -v; break;
+                    default:
+                        fprintf(stderr, "Unknown unary operator\n");
+                        exit(1);
+                }
+
+                return result;
+            }
+            else if (value.value_type == VALUE_FLOAT)
+            {
+                float v = value.value_data.float_value;
+                ShdValue result = { .value_type = VALUE_FLOAT };
+
+                switch ((int)node->unop.operator)
+                {
+                    case UNOP_PLUS: result.value_data.float_value = v; break;
+                    case UNOP_MINUS: result.value_data.float_value = -v; break;
+                    default:
+                        fprintf(stderr, "Unknown unary operator\n");
+                        exit(1);
+                }
+
+                return result;
+            }
+
+            fprintf(stderr, "Invalid value type in unary operation\n");
+            exit(1);
         }
 
         case AST_STATEMENT_LIST:
         {
-            float result = 0;
+            ASTNode *current_stmt = node;
+            ShdValue last_value = { .value_type = VALUE_INTEGER, .value_data.int_value = 0 };
 
-            ASTNode *current = node;
-            while (current)
+            while (current_stmt)
             {
-                result = eval(current->statement_list.first);
-                current = current->statement_list.next;
+                last_value = eval(env, current_stmt->statement_list.first);
+                current_stmt = current_stmt->statement_list.next;
             }
 
-            return result;
+            return last_value;
         }
 
-        case AST_FLOAT:
-            return node->_float.value;
+        case AST_VAR_DECLARATION:
+        {
+            char *name = node->var_declaration.name;
+            ShdValue value;
+
+            if (node->var_declaration.value != NULL)
+                value = eval(env, node->var_declaration.value);
+            else
+            {
+                value.value_type = VALUE_INTEGER;
+                value.value_data.int_value = 0;
+            }
+
+            ShdVariable variable = { .name = name, .value = value };
+            env_add_variable(env, variable);
+
+            return value;
+        }
+
+        case AST_VAR_ASSIGNMENT:
+        {
+            char *name = node->var_assignment.name;
+            ShdValue value = eval(env, node->var_assignment.value);
+
+            ShdVariable variable = { .name = name, .value = value};
+
+            switch ((int)node->var_assignment.operator)
+            {
+                case ASSIGNMENT_EQUAL: env_edit_variable(env, variable); break;
+                default:
+                    fprintf(stderr, "Unknow assignment operation\n");
+                    exit(1);
+            }
+
+            return value;
+        }
+
+        case AST_VAR_ACCESS:
+        {
+            char *name = node->var_access.name;
+            ShdVariable *variable = env_get_variable(env, name);
+
+            if (!variable)
+            {
+                fprintf(stderr, "Undeclared variable %s\n", variable->name);
+                exit(1);
+            }
+
+            return variable->value;
+        }
 
         default:
-            fprintf(stderr, "Unknow AST node in eval\n");
+            fprintf(stderr, "Unknown AST node in eval\n");
             exit(1);
     }
 }

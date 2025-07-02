@@ -1,5 +1,7 @@
 #pragma once
 
+#include "eval/include/variable.h"
 #include "parser/include/ast.h"
+#include "env.h"
 
-float eval(ASTNode *node);
+ShdValue eval(Env *env, ASTNode *node);

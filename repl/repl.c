@@ -1,11 +1,14 @@
 #include "include/repl.h"
 #include <parser/include/ast.h>
+#include "eval/include/env.h"
+#include "eval/include/variable.h"
 #include "parser/include/parser.h"
 #include "eval/include/eval.h"
 #include "repl/include/info.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <lexer/include/lexer.h>
 
 void repl_welcome()
 {
@@ -15,6 +18,7 @@ void repl_welcome()
 int main()
 {
     char line[MAX_CHARS_PER_LINE];
+    Env env = env_init();
 
     repl_welcome();
 
@@ -32,22 +36,28 @@ int main()
         char *source = malloc(strlen(line) + 2);
         source[0] = ' ';
         strcpy(source + 1, line);
-
         ASTNode *ast = parse(source);
 
         if (ast->type == AST_STATEMENT_LIST) {
             ASTNode *current = ast;
             while (current)
             {
-                float result = eval(current->statement_list.first);
-                printf("%g\n", result);
+                ShdValue result = eval(&env, current->statement_list.first);
+                if (result.value_type == VALUE_INTEGER)
+                    printf("%d\n", result.value_data.int_value);
+                else
+                    printf("%f\n", result.value_data.float_value);
+
                 current = current->statement_list.next;
             }
         }
         else
         {
-            float result = eval(ast);
-            printf("%g\n", result);
+            ShdValue result = eval(&env, ast);
+            if (result.value_type == VALUE_INTEGER)
+                printf("%d\n", result.value_data.int_value);
+            else
+                printf("%f\n", result.value_data.float_value);
         }
 
         AST_free(ast);

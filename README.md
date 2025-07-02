@@ -4,6 +4,7 @@
 *Shard* is an interpreted programming language in active development.
 
 ## Features
+- Dynamic and strongly typed variables
 - Division by zero handling
 - Floating numbers support
 - Arithmetic expressions
@@ -20,7 +21,7 @@ git clone https://github.com/shard-language/shard
 ```bash
 cd shard
 cd scripts
-make
+make                    # or make clean && make if you want to rebuild
 ```
 The executable is in `shard/shard`.
 
@@ -35,15 +36,14 @@ You can now run *Shard* by simply typing `shard` in your terminal!
 ## Contributing
 Everyone is free to contribute, but please read [the contribution guide](CONTRIBUTING.md) before.
 
-## Syntax
-a                           -> integer / float
+## Using the REPL
+Once you have installed *Shard*, run `shard` in your terminal.
+Now, you should be able to input code.
 
-a + b
-
-a - b
-
-a * b
-
-a / b
-
-a; b; c                     -> statement list
+Let's see the language rules:
+1. A variable must be declared like this: `var name = value`
+2. You cannot redeclare a variable
+3. Instructions can follow each other with `;`
+4. You can use the following symbols for maths: `+ - * / ( )`
+5. You can assign a value to a declared variable like this: `name = value`
+6. To access a variable, just type its name: `name + 4`

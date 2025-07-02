@@ -9,3 +9,4 @@ typedef struct
 } Token;
 
 Token get_next_token(Cursor *cursor);
+Token peek_next_token(Cursor *cursor);

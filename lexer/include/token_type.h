@@ -12,7 +12,19 @@ typedef enum
     T_EOF,
     T_UNKNOWN,
     T_SEMI,
-    T_FLOAT
+    T_FLOAT,
+    T_IDENTIFIER,
+    T_EQUAL,
+    T_KW_VAR
 } TokenType;
 
+typedef struct
+{
+    const char *text;
+    TokenType type;
+} Keyword;
+
 extern const char *token_type_names[];
+extern const Keyword keywords[];
+
+TokenType keyword_get_type(const char *identifier);

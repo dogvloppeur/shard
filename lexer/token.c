@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <string.h>
 
 #include "include/token.h"
 #include "include/token_type.h"
@@ -46,6 +47,25 @@ Token get_next_token(Cursor *cursor)
         return token;
     }
 
+    if (isalpha(cursor->current_char) || cursor->current_char == '_')
+    {
+        size_t start = cursor->position;
+
+        while (isalnum(cursor->current_char) || cursor->current_char == '_')
+            cursor_advance(cursor);
+
+        size_t length = cursor->position - start;
+        char *identifier = strndup(cursor->source + start, length);
+
+        token.type = keyword_get_type(identifier);
+        token.value = identifier;
+        token.length = length;
+        token.line = cursor->line;
+        token.column = cursor->column;
+
+        return token;
+    }
+
     switch (cursor->current_char)
     {
         case '+':
@@ -89,10 +109,24 @@ Token get_next_token(Cursor *cursor)
             token.length = 1;
             cursor_advance(cursor);
             return token;
+
+        case '=':
+            token.type = T_EQUAL;
+            token.length = 1;
+            cursor_advance(cursor);
+            return token;
     }
 
     token.type = T_UNKNOWN;
     token.length = 1;
     cursor_advance(cursor);
     return token;
+}
+
+Token peek_next_token(Cursor *cursor)
+{
+    Cursor tmp_cursor = *cursor;
+    tmp_cursor.current_char = tmp_cursor.source[tmp_cursor.position];
+    Token next_token = get_next_token(&tmp_cursor);
+    return next_token;
 }
