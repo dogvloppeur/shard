@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "include/token.h"
 #include "include/token_type.h"
@@ -111,7 +112,78 @@ Token get_next_token(Cursor *cursor)
             return token;
 
         case '=':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_EQEQUAL;
+                token.length = 2;
+                return token;
+            }
+
             token.type = T_EQUAL;
+            token.length = 1;
+            return token;
+
+        case '{':
+            token.type = T_LBRACE;
+            token.length = 1;
+            cursor_advance(cursor);
+            return token;
+
+        case '}':
+            token.type = T_RBRACE;
+            token.length = 1;
+            cursor_advance(cursor);
+            return token;
+
+        case '!':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_NOTEQUAL;
+                token.length = 2;
+                return token;
+            }
+
+            fprintf(stderr, "Illegal character '!'\n");
+            token.type = T_UNKNOWN;
+
+        case '<':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_LESSTHANEQ;
+                token.length = 2;
+                return token;
+            }
+
+            token.type = T_LESSTHAN;
+            token.length = 1;
+            return token;
+
+        case '>':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_GREATTHANEQ;
+                token.length = 2;
+                return token;
+            }
+
+            token.type = T_GREATTHAN;
+            token.length = 1;
+            return token;
+
+        case '^':
+            token.type = T_XOR;
             token.length = 1;
             cursor_advance(cursor);
             return token;

@@ -103,6 +103,33 @@ ASTNode *AST_new_var_access(const char *name, int line, int column)
     return node;
 }
 
+ASTNode *AST_new_cond_if(ASTNode *condition, ASTNode *branch, int line, int column)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    node->type = AST_COND_IF;
+    node->cond_if.condition = condition;
+    node->cond_if.branch = branch;
+    node->line = line;
+    node->column = column;
+
+    return node;
+}
+
+ASTNode *AST_new_cond_if_else(ASTNode *condition, ASTNode *then_branch, ASTNode *else_branch, int line, int column)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    node->type = AST_COND_IF_ELSE;
+    node->cond_if_else.condition = condition;
+    node->cond_if_else.then_branch = then_branch;
+    node->cond_if_else.else_branch = else_branch;
+    node->line = line;
+    node->column = column;
+
+    return node;
+}
+
 void AST_free(ASTNode *node)
 {
     if (!node) return;

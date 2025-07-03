@@ -14,7 +14,9 @@ typedef struct
 ASTNode *parse(const char *source);
 void parser_advance(Parser *parser);
 void parser_expect(Parser *parser, TokenType type);
-BinopTypes char_to_binop(char c);
+BinopTypes token_type_to_binop(TokenType type);
+UnopTypes token_type_to_unop(TokenType type);
+AssignmentTypes token_type_to_assignment(TokenType type);
 ASTNode *parse_factor(Parser *parser);
 ASTNode *parse_term(Parser *parser);
 ASTNode *parse_var_access(Parser *parser);
@@ -23,3 +25,6 @@ ASTNode *parse_expression(Parser *parser);
 ASTNode *parse_var_declaration(Parser *parser);
 ASTNode *parse_statement(Parser *parser);
 ASTNode *parse_statement_list(Parser *parser);
+ASTNode *parse_cond_if(Parser *parser);
+ASTNode *parse_comparison(Parser *parser);
+ASTNode *parse_bool(Parser *parser);

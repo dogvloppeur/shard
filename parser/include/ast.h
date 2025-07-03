@@ -9,7 +9,9 @@ typedef enum
     AST_UNOP,
     AST_VAR_DECLARATION,
     AST_VAR_ASSIGNMENT,
-    AST_VAR_ACCESS
+    AST_VAR_ACCESS,
+    AST_COND_IF,
+    AST_COND_IF_ELSE
 } ASTNodeTypes;
 
 typedef enum
@@ -17,13 +19,24 @@ typedef enum
     BINOP_PLUS,
     BINOP_MINUS,
     BINOP_TIMES,
-    BINOP_DIVIDE
+    BINOP_DIVIDE,
+    BINOP_ISEQUAL,
+    BINOP_ISNOTEQUAL,
+    BINOP_ISLESSER,
+    BINOP_ISLESSEREQUAL,
+    BINOP_ISGREATER,
+    BINOP_ISGREATEREQUAL,
+    BINOP_AND,
+    BINOP_OR,
+    BINOP_XOR,
+    BINOP_NOT
 } BinopTypes;
 
 typedef enum
 {
     UNOP_PLUS,
-    UNOP_MINUS
+    UNOP_MINUS,
+    UNOP_NOT
 } UnopTypes;
 
 typedef enum
@@ -86,6 +99,19 @@ struct ASTNode
         {
             char *name;
         } var_access;
+
+        struct
+        {
+            ASTNode *condition;
+            ASTNode *branch;
+        } cond_if;
+
+        struct
+        {
+            ASTNode *condition;
+            ASTNode *then_branch;
+            ASTNode *else_branch;
+        } cond_if_else;
     };
 };
 
@@ -97,4 +123,7 @@ ASTNode *AST_new_unop(UnopTypes operator, ASTNode *value, int line, int column);
 ASTNode *AST_new_var_declaration(const char *name, ASTNode *value, int line, int column);
 ASTNode *AST_new_var_assignment(const char *name, AssignmentTypes operator, ASTNode *value, int line, int column);
 ASTNode *AST_new_var_access(const char *name, int line, int column);
+ASTNode *AST_new_cond_if(ASTNode *condition, ASTNode *branch, int line, int column);
+ASTNode *AST_new_cond_if_else(ASTNode *condition, ASTNode *then_branch, ASTNode *else_branch, int line, int column);
+
 void AST_free(ASTNode *node);

@@ -15,7 +15,21 @@ typedef enum
     T_FLOAT,
     T_IDENTIFIER,
     T_EQUAL,
-    T_KW_VAR
+    T_KW_VAR,
+    T_KW_IF,
+    T_KW_ELSE,
+    T_LBRACE,
+    T_RBRACE,
+    T_EQEQUAL,
+    T_NOTEQUAL,
+    T_LESSTHAN,
+    T_LESSTHANEQ,
+    T_GREATTHAN,
+    T_GREATTHANEQ,
+    T_KW_AND,
+    T_KW_OR,
+    T_XOR,
+    T_KW_NOT
 } TokenType;
 
 typedef struct

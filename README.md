@@ -4,6 +4,8 @@
 *Shard* is an interpreted programming language in active development.
 
 ## Features
+- Booleans and comparison operators
+- If/else conditions
 - Complete CLI
 - Dynamic and strongly typed variables
 - Division by zero handling
@@ -32,6 +34,12 @@ chmod +x install.sh
 su                      # or sudo/doas...
 ./install.sh
 ```
+To check if Shard is installed, type
+```bash
+shard --version
+```
+in your terminal.
+
 You can now run *Shard* by simply typing `shard` in your terminal!
 
 ## Contributing
@@ -44,9 +52,13 @@ Now, you should be able to input code. This is what we call the *REPL*.
 You can enter the REPL without giving an option.
 To see a list of options, type
 ```bash
-shard -h
-# or
 shard --help
+```
+
+To see some informations about *Shard*, type
+```bash
+shard --version             # to see your version
+shard --license             # to see your license
 ```
 
 To execute code without using the REPL, type
@@ -66,6 +78,7 @@ Let's see the language rules:
 1. A variable must be declared like this: `var name = value`
 2. You cannot redeclare a variable
 3. Instructions can follow each other with `;`
-4. You can use the following symbols for maths: `+ - * / ( )`
+4. You can use the following symbols for maths: `+ - * / ( ) == != <= >= < >`
 5. You can assign a value to a declared variable like this: `name = value`
 6. To access a variable, just type its name: `name + 4`
+7. The boolean operators are `and or not ^`

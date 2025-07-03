@@ -55,6 +55,15 @@ ShdValue eval(Env *env, ASTNode *node)
                         }
                         result.value_data.int_value = l / r;
                         break;
+                    case BINOP_ISEQUAL: result.value_data.int_value = l == r; break;
+                    case BINOP_ISNOTEQUAL: result.value_data.int_value = l != r; break;
+                    case BINOP_ISLESSER: result.value_data.int_value = l < r; break;
+                    case BINOP_ISLESSEREQUAL: result.value_data.int_value = l <= r; break;
+                    case BINOP_ISGREATER: result.value_data.int_value = l > r; break;
+                    case BINOP_ISGREATEREQUAL: result.value_data.int_value = l >= r; break;
+                    case BINOP_AND: result.value_data.int_value = l && r; break;
+                    case BINOP_OR: result.value_data.int_value = l || r; break;
+                    case BINOP_XOR: result.value_data.int_value = l ^ r; break;
                     default:
                         fprintf(stderr, "Unknown binary operator\n");
                         exit(1);
@@ -81,6 +90,14 @@ ShdValue eval(Env *env, ASTNode *node)
                         }
                         result.value_data.float_value = l / r;
                         break;
+                    case BINOP_ISEQUAL: result.value_data.float_value = l == r; break;
+                    case BINOP_ISNOTEQUAL: result.value_data.float_value = l != r; break;
+                    case BINOP_ISLESSER: result.value_data.float_value = l < r; break;
+                    case BINOP_ISLESSEREQUAL: result.value_data.float_value = l <= r; break;
+                    case BINOP_ISGREATER: result.value_data.float_value = l > r; break;
+                    case BINOP_ISGREATEREQUAL: result.value_data.float_value = l >= r; break;
+                    case BINOP_AND: result.value_data.float_value = l && r; break;
+                    case BINOP_OR: result.value_data.float_value = l || r; break;
                     default:
                         fprintf(stderr, "Unknown binary operator\n");
                         exit(1);
@@ -103,6 +120,7 @@ ShdValue eval(Env *env, ASTNode *node)
                 {
                     case UNOP_PLUS: result.value_data.int_value = v; break;
                     case UNOP_MINUS: result.value_data.int_value = -v; break;
+                    case UNOP_NOT: result.value_data.int_value = !v; break;
                     default:
                         fprintf(stderr, "Unknown unary operator\n");
                         exit(1);
@@ -119,6 +137,7 @@ ShdValue eval(Env *env, ASTNode *node)
                 {
                     case UNOP_PLUS: result.value_data.float_value = v; break;
                     case UNOP_MINUS: result.value_data.float_value = -v; break;
+                    case UNOP_NOT: result.value_data.float_value = !v; break;
                     default:
                         fprintf(stderr, "Unknown unary operator\n");
                         exit(1);
@@ -175,7 +194,7 @@ ShdValue eval(Env *env, ASTNode *node)
             {
                 case ASSIGNMENT_EQUAL: env_edit_variable(env, variable); break;
                 default:
-                    fprintf(stderr, "Unknow assignment operation\n");
+                    fprintf(stderr, "Unknown assignment operation\n");
                     exit(1);
             }
 
@@ -189,11 +208,59 @@ ShdValue eval(Env *env, ASTNode *node)
 
             if (!variable)
             {
-                fprintf(stderr, "Undeclared variable %s\n", variable->name);
+                fprintf(stderr, "Undeclared variable %s\n", name);
                 exit(1);
             }
 
             return variable->value;
+        }
+
+        case AST_COND_IF:
+        {
+            ShdValue cond = eval(env, node->cond_if.condition);
+
+            if ((cond.value_type == VALUE_INTEGER && cond.value_data.int_value != 0) ||
+                (cond.value_type == VALUE_FLOAT && cond.value_data.float_value != 0.0f))
+            {
+                ASTNode *current = node->cond_if.branch;
+                ShdValue last = { .value_type = VALUE_INTEGER, .value_data.int_value = 0 };
+                while (current)
+                {
+                    last = eval(env, current->statement_list.first);
+                    current = current->statement_list.next;
+                }
+                return last;
+            }
+
+            ShdValue dummy = { .value_type = VALUE_INTEGER, .value_data.int_value = 0 };
+            return dummy;
+        }
+
+        case AST_COND_IF_ELSE:
+        {
+            ShdValue cond = eval(env, node->cond_if_else.condition);
+
+            ASTNode *branch = NULL;
+
+            if ((cond.value_type == VALUE_INTEGER && cond.value_data.int_value != 0) ||
+                (cond.value_type == VALUE_FLOAT && cond.value_data.float_value != 0.0f))
+            {
+                branch = node->cond_if_else.then_branch;
+            }
+            else
+            {
+                branch = node->cond_if_else.else_branch;
+            }
+
+            ShdValue last = { .value_type = VALUE_INTEGER, .value_data.int_value = 0 };
+            ASTNode *current = branch;
+            while (current)
+            {
+                last = eval(env, current->statement_list.first);
+                current = current->statement_list.next;
+            }
+
+            return last;
         }
 
         default:
