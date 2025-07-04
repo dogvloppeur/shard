@@ -8,6 +8,19 @@
 #include "parser/include/parser.h"
 #include <lexer/include/lexer.h>
 
+#ifndef _MSC_VER
+// strndup is not available on Windows, so we define it if missing
+char *strndup(const char *s, size_t n) {
+    size_t len = 0;
+    while (len < n && s[len]) len++;
+    char *result = (char *)malloc(len + 1);
+    if (!result) return NULL;
+    memcpy(result, s, len);
+    result[len] = '\0';
+    return result;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
     if (argc == 1)
