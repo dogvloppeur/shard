@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils/error.h>
+#include <utils/color.h>
 
 ASTNode *parse(const char *source)
 {
@@ -26,16 +28,13 @@ void parser_advance(Parser *parser)
 void parser_expect(Parser *parser, TokenType type)
 {
     if (parser->current_token.type != (int)type)
-    {
-        fprintf(stderr, "Expected token type: %d\n", type);
-        exit(1);
-    }
+        error_syntax(SERR_EXPECT, token_type_names[parser->current_token.type], parser->current_token.line);
     parser_advance(parser);
 }
 
 BinopTypes token_type_to_binop(TokenType type)
 {
-    switch (type)
+    switch ((int)type)
     {
         case T_PLUS: return BINOP_PLUS;
         case T_MINUS: return BINOP_MINUS;
@@ -50,33 +49,35 @@ BinopTypes token_type_to_binop(TokenType type)
         case T_KW_AND: return BINOP_AND;
         case T_KW_OR: return BINOP_OR;
         case T_XOR: return BINOP_XOR;
-        default:
-            fprintf(stderr, "Unknow binary operator: %d\n", type);
-            exit(1);
+        case T_ANDBIT: return BINOP_ANDBIT;
+        case T_ORBIT: return BINOP_ORBIT;
     }
 }
 
 UnopTypes token_type_to_unop(TokenType type)
 {
-    switch (type)
+    switch ((int)type)
     {
         case T_PLUS: return UNOP_PLUS;
         case T_MINUS: return UNOP_MINUS;
         case T_KW_NOT: return UNOP_NOT;
-        default:
-            fprintf(stderr, "Unknown unary operator token type: %d\n", type);
-            exit(1);
+        case T_BITWISE: return UNOP_BITWISE;
     }
 }
 
 AssignmentTypes token_type_to_assignment(TokenType type)
 {
-    switch (type)
+    switch ((int)type)
     {
         case T_EQUAL: return ASSIGNMENT_EQUAL;
-        default:
-            fprintf(stderr, "Unknow assignment operator: %d\n", type);
-            exit(1);
+        case T_PLUSEQ: return ASSIGNMENT_PLUSEQ;
+        case T_MINUSEQ: return ASSIGNMENT_MINUSEQ;
+        case T_STAREQ: return ASSIGNMENT_STAREQ;
+        case T_SLASHEQ: return ASSIGNMENT_SLASHEQ;
+        case T_ANDEQ: return ASSIGNMENT_ANDEQ;
+        case T_OREQ: return ASSIGNMENT_OREQ;
+        case T_XOREQ: return ASSIGNMENT_XOREQ;
+        case T_BITWEQ: return ASSIGNMENT_BITWEQ;
     }
 }
 
@@ -119,8 +120,7 @@ ASTNode *parse_factor(Parser *parser)
         return node;
     }
 
-    fprintf(stderr, "Syntax error in factor\n");
-    exit(1);
+    error_syntax(SERR_DEFAULT, parser->current_token.value, parser->current_token.line);
 }
 
 ASTNode *parse_term(Parser *parser)
@@ -156,8 +156,7 @@ ASTNode *parse_expression(Parser *parser)
 ASTNode *parse_comparison(Parser *parser)
 {
     ASTNode *node = parse_expression(parser);
-    while (parser->current_token.type == T_EQEQUAL || parser->current_token.type == T_NOTEQUAL || parser->current_token.type == T_LESSTHAN
-           || parser->current_token.type == T_LESSTHANEQ || parser->current_token.type == T_GREATTHAN || parser->current_token.type == T_GREATTHANEQ)
+    while (is_token_assignment_operator(parser->current_token.type))
     {
         BinopTypes operator = token_type_to_binop(parser->current_token.type);
         int line = parser->current_token.line;
@@ -180,13 +179,24 @@ ASTNode *parse_bool_factor(Parser *parser)
         ASTNode *value = parse_bool_factor(parser);
         return AST_new_unop(operator, value, line, column);
     }
+
+    if (parser->current_token.type == T_BITWISE)
+    {
+        UnopTypes operand = token_type_to_unop(parser->current_token.type);
+        int line = parser->current_token.line;
+        int column = parser->current_token.column;
+        parser_advance(parser);
+        ASTNode *value = parse_bool_factor(parser);
+        return AST_new_unop(operand, value, line, column);
+    }
+
     return parse_comparison(parser);
 }
 
 ASTNode *parse_bool(Parser *parser)
 {
     ASTNode *node = parse_bool_factor(parser);
-    while (parser->current_token.type == T_KW_AND || parser->current_token.type == T_KW_OR || parser->current_token.type == T_XOR)
+    while (parser->current_token.type == T_KW_AND || parser->current_token.type == T_KW_OR || parser->current_token.type == T_XOR || parser->current_token.type == T_ANDBIT || parser->current_token.type == T_ORBIT)
     {
         BinopTypes operator = token_type_to_binop(parser->current_token.type);
         int line = parser->current_token.line;
@@ -195,16 +205,14 @@ ASTNode *parse_bool(Parser *parser)
         ASTNode *right = parse_bool_factor(parser);
         node = AST_new_binop(operator, node, right, line, column);
     }
+
     return node;
 }
 
 ASTNode *parse_var_access(Parser *parser)
 {
     if (parser->current_token.type != T_IDENTIFIER)
-    {
-        fprintf(stderr, "Expected identifier for variable access\n");
-        exit(1);
-    }
+        error_syntax(SERR_EXPECT, "identifier for variable access",parser->current_token.line);
     char *name = parser->current_token.value;
     int line = parser->current_token.line;
     int column = parser->current_token.column;
@@ -215,10 +223,8 @@ ASTNode *parse_var_access(Parser *parser)
 ASTNode *parse_var_assignment(Parser *parser)
 {
     if (parser->current_token.type != T_IDENTIFIER)
-    {
-        fprintf(stderr, "Expected identifier for variable assignment\n");
-        exit(1);
-    }
+        error_syntax(SERR_EXPECT, "identifier for variable assignment", parser->current_token.line);
+
     char *name = parser->current_token.value;
     int line = parser->current_token.line;
     int column = parser->current_token.column;
@@ -232,10 +238,8 @@ ASTNode *parse_var_assignment(Parser *parser)
 ASTNode *parse_var_declaration(Parser *parser)
 {
     if (parser->current_token.type != T_IDENTIFIER)
-    {
-        fprintf(stderr, "Expected identifier after 'var'\n");
-        exit(1);
-    }
+        error_syntax(SERR_EXPECT, "identifier after \"var\"", parser->current_token.line);
+
     char *name = parser->current_token.value;
     int line = parser->current_token.line;
     int column = parser->current_token.column;
@@ -276,10 +280,13 @@ ASTNode *parse_statement_list(Parser *parser)
     ASTNode *head = AST_new_statement_list(first, NULL, parser->current_token.line, parser->current_token.column);
     ASTNode *current = head;
 
-    while (parser->current_token.type == T_SEMI)
+    while (parser->current_token.type != T_EOF && parser->current_token.type != T_RBRACE)
     {
+        if (parser->current_token.type != T_SEMI)
+            error_syntax(SERR_EXPECT, "';' between statements", parser->current_token.line);
+
         parser_advance(parser);
-        if (parser->current_token.type == T_EOF)
+        if (parser->current_token.type == T_EOF || parser->current_token.type == T_RBRACE)
             break;
 
         ASTNode *next_stmt = parse_statement(parser);

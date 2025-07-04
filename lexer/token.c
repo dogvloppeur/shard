@@ -5,6 +5,7 @@
 #include "include/token.h"
 #include "include/token_type.h"
 #include "lexer/include/cursor.h"
+#include <utils/error.h>
 
 Token get_next_token(Cursor *cursor)
 {
@@ -70,27 +71,63 @@ Token get_next_token(Cursor *cursor)
     switch (cursor->current_char)
     {
         case '+':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_PLUSEQ;
+                token.length = 2;
+                return token;
+            }
+
             token.type = T_PLUS;
             token.length = 1;
-            cursor_advance(cursor);
             return token;
 
         case '-':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_MINUSEQ;
+                token.length = 2;
+                return token;
+            }
+
             token.type = T_MINUS;
             token.length = 1;
-            cursor_advance(cursor);
             return token;
 
         case '*':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_STAREQ;
+                token.length = 2;
+                return token;
+            }
+
             token.type = T_STAR;
             token.length = 1;
-            cursor_advance(cursor);
             return token;
 
         case '/':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_SLASHEQ;
+                token.length = 2;
+                return token;
+            }
+
             token.type = T_SLASH;
             token.length = 1;
-            cursor_advance(cursor);
             return token;
 
         case '(':
@@ -149,8 +186,7 @@ Token get_next_token(Cursor *cursor)
                 return token;
             }
 
-            fprintf(stderr, "Illegal character '!'\n");
-            token.type = T_UNKNOWN;
+            error_illegal_char('!', token.line, token.column);
 
         case '<':
             cursor_advance(cursor);
@@ -183,10 +219,67 @@ Token get_next_token(Cursor *cursor)
             return token;
 
         case '^':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_XOREQ;
+                token.length = 2;
+                return token;
+            }
+
             token.type = T_XOR;
             token.length = 1;
-            cursor_advance(cursor);
             return token;
+
+        case '&':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_ANDEQ;
+                token.length = 2;
+                return token;
+            }
+
+            token.type = T_ANDBIT;
+            token.length = 1;
+            return token;
+
+        case '|':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_OREQ;
+                token.length = 2;
+                return token;
+            }
+
+            token.type = T_ORBIT;
+            token.length = 1;
+            return token;
+
+        case '~':
+            cursor_advance(cursor);
+
+            if (cursor->current_char == '=')
+            {
+                cursor_advance(cursor);
+                token.type = T_BITWEQ;
+                token.length = 2;
+                return token;
+            }
+
+            token.type = T_BITWISE;
+            token.length = 1;
+            return token;
+
+        default:
+            error_illegal_char(cursor->current_char, token.line, token.column);
     }
 
     token.type = T_UNKNOWN;

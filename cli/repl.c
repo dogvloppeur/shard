@@ -1,6 +1,6 @@
 #include "include/repl.h"
 #include <parser/include/ast.h>
-#include "cli/include/info.h"
+#include <utils/info.h>
 #include <stdio.h>
 #include <lexer/include/lexer.h>
 #include <eval/include/variable.h>

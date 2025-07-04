@@ -29,7 +29,18 @@ typedef enum
     T_KW_AND,
     T_KW_OR,
     T_XOR,
-    T_KW_NOT
+    T_KW_NOT,
+    T_ANDBIT,
+    T_ORBIT,
+    T_BITWISE,
+    T_PLUSEQ,
+    T_MINUSEQ,
+    T_STAREQ,
+    T_SLASHEQ,
+    T_ANDEQ,
+    T_OREQ,
+    T_XOREQ,
+    T_BITWEQ
 } TokenType;
 
 typedef struct

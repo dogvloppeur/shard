@@ -29,19 +29,30 @@ typedef enum
     BINOP_AND,
     BINOP_OR,
     BINOP_XOR,
-    BINOP_NOT
+    BINOP_NOT,
+    BINOP_ANDBIT,
+    BINOP_ORBIT,
 } BinopTypes;
 
 typedef enum
 {
     UNOP_PLUS,
     UNOP_MINUS,
-    UNOP_NOT
+    UNOP_NOT,
+    UNOP_BITWISE
 } UnopTypes;
 
 typedef enum
 {
-    ASSIGNMENT_EQUAL
+    ASSIGNMENT_EQUAL,
+    ASSIGNMENT_PLUSEQ,
+    ASSIGNMENT_MINUSEQ,
+    ASSIGNMENT_STAREQ,
+    ASSIGNMENT_SLASHEQ,
+    ASSIGNMENT_ANDEQ,
+    ASSIGNMENT_OREQ,
+    ASSIGNMENT_XOREQ,
+    ASSIGNMENT_BITWEQ
 } AssignmentTypes;
 
 typedef struct ASTNode ASTNode;

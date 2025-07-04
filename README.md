@@ -4,7 +4,8 @@
 *Shard* is an interpreted programming language in active development.
 
 ## Features
-- Booleans and comparison operators
+- Better errors
+- Booleans, bit, assignment and comparison operators
 - If/else conditions
 - Complete CLI
 - Dynamic and strongly typed variables
@@ -81,4 +82,8 @@ Let's see the language rules:
 4. You can use the following symbols for maths: `+ - * / ( ) == != <= >= < >`
 5. You can assign a value to a declared variable like this: `name = value`
 6. To access a variable, just type its name: `name + 4`
-7. The boolean operators are `and or not ^`
+7. The boolean and bit operators are `and or not ^ & | ~`
+8. The assignment operators are `= += -= *= /= &= |= ^= ~=`
+
+## Special thanks
+See the [credits here](CREDITS.md).

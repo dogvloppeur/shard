@@ -2,6 +2,7 @@
 #include "include/variable.h"
 #include "parser/include/ast.h"
 #include "include/env.h"
+#include "utils/error.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -49,10 +50,8 @@ ShdValue eval(Env *env, ASTNode *node)
                     case BINOP_TIMES: result.value_data.int_value = l * r; break;
                     case BINOP_DIVIDE:
                         if (r == 0)
-                        {
-                            fprintf(stderr, "Division by zero\n");
-                            exit(1);
-                        }
+                            error_math(MERR_ZERODIV, NULL, NULL, NULL);
+
                         result.value_data.int_value = l / r;
                         break;
                     case BINOP_ISEQUAL: result.value_data.int_value = l == r; break;
@@ -64,9 +63,8 @@ ShdValue eval(Env *env, ASTNode *node)
                     case BINOP_AND: result.value_data.int_value = l && r; break;
                     case BINOP_OR: result.value_data.int_value = l || r; break;
                     case BINOP_XOR: result.value_data.int_value = l ^ r; break;
-                    default:
-                        fprintf(stderr, "Unknown binary operator\n");
-                        exit(1);
+                    case BINOP_ANDBIT: result.value_data.int_value = l & r; break;
+                    case BINOP_ORBIT: result.value_data.int_value = l | r; break;
                 }
 
                 return result;
@@ -84,10 +82,8 @@ ShdValue eval(Env *env, ASTNode *node)
                     case BINOP_TIMES: result.value_data.float_value = l * r; break;
                     case BINOP_DIVIDE:
                         if (r == 0.0f)
-                        {
-                            fprintf(stderr, "Division by zero\n");
-                            exit(1);
-                        }
+                            error_math(MERR_ZERODIV, NULL, NULL, NULL);
+
                         result.value_data.float_value = l / r;
                         break;
                     case BINOP_ISEQUAL: result.value_data.float_value = l == r; break;
@@ -98,10 +94,10 @@ ShdValue eval(Env *env, ASTNode *node)
                     case BINOP_ISGREATEREQUAL: result.value_data.float_value = l >= r; break;
                     case BINOP_AND: result.value_data.float_value = l && r; break;
                     case BINOP_OR: result.value_data.float_value = l || r; break;
-                    default:
-                        fprintf(stderr, "Unknown binary operator\n");
-                        exit(1);
                 }
+
+                if (node->binop.operator == BINOP_ANDBIT || node->binop.operator == BINOP_ORBIT || node->binop.operator == BINOP_XOR)
+                    error_math(MERR_TYPE, NULL, NULL, NULL);
 
                 return result;
             }
@@ -121,9 +117,7 @@ ShdValue eval(Env *env, ASTNode *node)
                     case UNOP_PLUS: result.value_data.int_value = v; break;
                     case UNOP_MINUS: result.value_data.int_value = -v; break;
                     case UNOP_NOT: result.value_data.int_value = !v; break;
-                    default:
-                        fprintf(stderr, "Unknown unary operator\n");
-                        exit(1);
+                    case UNOP_BITWISE: result.value_data.int_value = ~v; break;
                 }
 
                 return result;
@@ -138,16 +132,13 @@ ShdValue eval(Env *env, ASTNode *node)
                     case UNOP_PLUS: result.value_data.float_value = v; break;
                     case UNOP_MINUS: result.value_data.float_value = -v; break;
                     case UNOP_NOT: result.value_data.float_value = !v; break;
-                    default:
-                        fprintf(stderr, "Unknown unary operator\n");
-                        exit(1);
                 }
+
+                if (node->unop.operator == UNOP_BITWISE)
+                    error_math(MERR_TYPE, NULL, NULL, NULL);
 
                 return result;
             }
-
-            fprintf(stderr, "Invalid value type in unary operation\n");
-            exit(1);
         }
 
         case AST_STATEMENT_LIST:
@@ -192,10 +183,15 @@ ShdValue eval(Env *env, ASTNode *node)
 
             switch ((int)node->var_assignment.operator)
             {
-                case ASSIGNMENT_EQUAL: env_edit_variable(env, variable); break;
-                default:
-                    fprintf(stderr, "Unknown assignment operation\n");
-                    exit(1);
+                case ASSIGNMENT_EQUAL: env_edit_variable(env, VEDIT_SET, variable); break;
+                case ASSIGNMENT_PLUSEQ: env_edit_variable(env, VEDIT_ADD, variable); break;
+                case ASSIGNMENT_MINUSEQ: env_edit_variable(env, VEDIT_SUB, variable); break;
+                case ASSIGNMENT_STAREQ: env_edit_variable(env, VEDIT_MUL, variable); break;
+                case ASSIGNMENT_SLASHEQ: env_edit_variable(env, VEDIT_DIV, variable); break;
+                case ASSIGNMENT_ANDEQ: env_edit_variable(env, VEDIT_AND, variable); break;
+                case ASSIGNMENT_OREQ: env_edit_variable(env, VEDIT_OR, variable); break;
+                case ASSIGNMENT_XOREQ: env_edit_variable(env, VEDIT_XOR, variable); break;
+                case ASSIGNMENT_BITWEQ: env_edit_variable(env, VEDIT_BITWISE, variable); break;
             }
 
             return value;
@@ -207,10 +203,7 @@ ShdValue eval(Env *env, ASTNode *node)
             ShdVariable *variable = env_get_variable(env, name);
 
             if (!variable)
-            {
-                fprintf(stderr, "Undeclared variable %s\n", name);
-                exit(1);
-            }
+                error_variable(VERR_UNDECLARED, name);
 
             return variable->value;
         }
@@ -263,8 +256,6 @@ ShdValue eval(Env *env, ASTNode *node)
             return last;
         }
 
-        default:
-            fprintf(stderr, "Unknown AST node in eval\n");
-            exit(1);
+        default: error_ast();
     }
 }
