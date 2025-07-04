@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g -I..
 BUILD_DIR = ../build
-SRC_DIRS = ../lexer ../parser ../eval ../cli
+SRC_DIRS = ../utils ../lexer ../parser ../eval ../cli
 TARGET = ../shard
 
 SRC_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
