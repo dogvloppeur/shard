@@ -198,6 +198,22 @@ Token get_next_token(Cursor *cursor)
                 token.length = 2;
                 return token;
             }
+            else if (cursor->current_char == '<')
+            {
+                cursor_advance(cursor);
+
+                if (cursor->current_char == '=')
+                {
+                    cursor_advance(cursor);
+                    token.type = T_LSHIFTEQ;
+                    token.length = 3;
+                    return token;
+                }
+
+                token.type = T_LSHIFT;
+                token.length = 2;
+                return token;
+            }
 
             token.type = T_LESSTHAN;
             token.length = 1;
@@ -210,6 +226,22 @@ Token get_next_token(Cursor *cursor)
             {
                 cursor_advance(cursor);
                 token.type = T_GREATTHANEQ;
+                token.length = 2;
+                return token;
+            }
+            else if (cursor->current_char == '>')
+            {
+                cursor_advance(cursor);
+
+                if (cursor->current_char == '=')
+                {
+                    cursor_advance(cursor);
+                    token.type = T_RSHIFTEQ;
+                    token.length = 3;
+                    return token;
+                }
+
+                token.type = T_RSHIFT;
                 token.length = 2;
                 return token;
             }

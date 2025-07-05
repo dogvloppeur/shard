@@ -4,8 +4,10 @@
 *Shard* is an interpreted programming language in active development.
 
 ## Features
+- Flow control statements
+- Loops
 - Better errors
-- Booleans, bit, assignment and comparison operators
+- Booleans, bit-boolean, assignment, bit-shifting and comparison operators
 - If/else conditions
 - Complete CLI
 - Dynamic and strongly typed variables
@@ -18,7 +20,7 @@
 ## Build
 1. Clone this repository
 ```bash
-git clone https://github.com/shard-language/shard
+git clone https://github.com/shardlanguage/shard
 ```
 
 2. Make the code (don't forget to install `make`)
@@ -59,7 +61,9 @@ shard --help
 To see some informations about *Shard*, type
 ```bash
 shard --version             # to see your version
-shard --license             # to see your license
+shard --license             # to see the license
+shard --credits             # to see the credits (you can also check CREDITS.md)
+shard --link                # to see Shard-related links
 ```
 
 To execute code without using the REPL, type
@@ -79,11 +83,12 @@ Let's see the language rules:
 1. A variable must be declared like this: `var name = value`
 2. You cannot redeclare a variable
 3. Instructions can follow each other with `;`
-4. You can use the following symbols for maths: `+ - * / ( ) == != <= >= < >`
+4. You can use the following symbols for maths: `+ - * / ( ) == != <= >= < > << >>`
 5. You can assign a value to a declared variable like this: `name = value`
 6. To access a variable, just type its name: `name + 4`
 7. The boolean and bit operators are `and or not ^ & | ~`
-8. The assignment operators are `= += -= *= /= &= |= ^= ~=`
+8. The assignment operators are `= += -= *= /= &= |= ^= ~= <<= >>=`
+9. The loops and if/else conditions must end with `;` like the other statements
 
 ## Special thanks
 See the [credits here](CREDITS.md).

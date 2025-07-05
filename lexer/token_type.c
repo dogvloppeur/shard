@@ -41,7 +41,16 @@ const char *token_type_names[] = {
     "T_ANDEQ",
     "T_OREQ",
     "T_XOREQ",
-    "T_BITWEQ"
+    "T_BITWEQ",
+    "T_LSHIFT",
+    "T_RSHIFT",
+    "T_LSHIFTEQ",
+    "T_RSHIFTEQ",
+    "T_KW_WHILE",
+    "T_KW_UNTIL",
+    "T_KW_FOREVER",
+    "T_KW_BREAK",
+    "T_KW_CONTINUE"
 };
 
 const Keyword keywords[] = {
@@ -50,7 +59,12 @@ const Keyword keywords[] = {
     {"else", T_KW_ELSE},
     {"and", T_KW_AND},
     {"or", T_KW_OR},
-    {"not", T_KW_NOT}
+    {"not", T_KW_NOT},
+    {"while", T_KW_WHILE},
+    {"until", T_KW_UNTIL},
+    {"forever", T_KW_FOREVER},
+    {"break", T_KW_BREAK},
+    {"continue", T_KW_CONTINUE}
 };
 
 TokenType keyword_get_type(const char *identifier)

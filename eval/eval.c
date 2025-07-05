@@ -1,5 +1,6 @@
 #include "include/eval.h"
 #include "include/variable.h"
+#include "lexer/include/token_type.h"
 #include "parser/include/ast.h"
 #include "include/env.h"
 #include "utils/error.h"
@@ -65,6 +66,8 @@ ShdValue eval(Env *env, ASTNode *node)
                     case BINOP_XOR: result.value_data.int_value = l ^ r; break;
                     case BINOP_ANDBIT: result.value_data.int_value = l & r; break;
                     case BINOP_ORBIT: result.value_data.int_value = l | r; break;
+                    case BINOP_LSHIFT: result.value_data.int_value = l << r; break;
+                    case BINOP_RSHIFT: result.value_data.int_value = l >> r; break;
                 }
 
                 return result;
@@ -96,7 +99,7 @@ ShdValue eval(Env *env, ASTNode *node)
                     case BINOP_OR: result.value_data.float_value = l || r; break;
                 }
 
-                if (node->binop.operator == BINOP_ANDBIT || node->binop.operator == BINOP_ORBIT || node->binop.operator == BINOP_XOR)
+                if (node->binop.operator == BINOP_ANDBIT || node->binop.operator == BINOP_ORBIT || node->binop.operator == BINOP_XOR || node->binop.operator == BINOP_LSHIFT || node->binop.operator == BINOP_RSHIFT)
                     error_math(MERR_TYPE, NULL, NULL, NULL);
 
                 return result;
@@ -192,6 +195,8 @@ ShdValue eval(Env *env, ASTNode *node)
                 case ASSIGNMENT_OREQ: env_edit_variable(env, VEDIT_OR, variable); break;
                 case ASSIGNMENT_XOREQ: env_edit_variable(env, VEDIT_XOR, variable); break;
                 case ASSIGNMENT_BITWEQ: env_edit_variable(env, VEDIT_BITWISE, variable); break;
+                case ASSIGNMENT_LSHIFTEQ: env_edit_variable(env, VEDIT_LSHIFT, variable); break;
+                case ASSIGNMENT_RSHIFTEQ: env_edit_variable(env, VEDIT_RSHIFT, variable); break;
             }
 
             return value;
@@ -254,6 +259,138 @@ ShdValue eval(Env *env, ASTNode *node)
             }
 
             return last;
+        }
+
+        case AST_COND_LOOP:
+        {
+            env_switch_context(env, CONTEXT_LOOP);  // entrée dans boucle
+
+            if (node->cond_loop.type == CONDLOOP_WHILE)
+            {
+                while (1)
+                {
+                    ShdValue cond = eval(env, node->cond_loop.condition);
+                    if (!((cond.value_type == VALUE_INTEGER && cond.value_data.int_value != 0) ||
+                        (cond.value_type == VALUE_FLOAT && cond.value_data.float_value != 0.0f)))
+                        break;
+
+                    ASTNode *current = node->cond_loop.branch;
+                    ShdValue last = { .value_type = VALUE_INTEGER, .value_data.int_value = 0, .signal = SIGNAL_NORMAL };
+
+                    while (current)
+                    {
+                        last = eval(env, current->statement_list.first);
+
+                        if (last.signal == SIGNAL_BREAK)
+                        {
+                            env_switch_context(env, CONTEXT_GLOBAL);
+                            return last;
+                        }
+                        else if (last.signal == SIGNAL_CONTINUE)
+                            break;
+
+                        current = current->statement_list.next;
+                    }
+
+                    if (last.signal == SIGNAL_CONTINUE)
+                    {
+                        continue;
+                    }
+                }
+            }
+            else if (node->cond_loop.type == CONDLOOP_UNTIL)
+            {
+                while (1)
+                {
+                    ShdValue cond = eval(env, node->cond_loop.condition);
+                    if (!((cond.value_type == VALUE_INTEGER && cond.value_data.int_value == 0) ||
+                        (cond.value_type == VALUE_FLOAT && cond.value_data.float_value == 0.0f)))
+                        break;
+
+                    ASTNode *current = node->cond_loop.branch;
+                    ShdValue last = { .value_type = VALUE_INTEGER, .value_data.int_value = 0, .signal = SIGNAL_NORMAL };
+
+                    while (current)
+                    {
+                        last = eval(env, current->statement_list.first);
+
+                        if (last.signal == SIGNAL_BREAK)
+                        {
+                            env_switch_context(env, CONTEXT_GLOBAL);
+                            return last;
+                        }
+                        else if (last.signal == SIGNAL_CONTINUE)
+                            break;
+
+                        current = current->statement_list.next;
+                    }
+
+                    if (last.signal == SIGNAL_CONTINUE)
+                        continue;
+                }
+            }
+
+            env_switch_context(env, CONTEXT_GLOBAL);
+
+            ShdValue dummy = { .value_type = VALUE_INTEGER, .value_data.int_value = 0, .signal = SIGNAL_NORMAL };
+            return dummy;
+        }
+
+        case AST_UNCOND_LOOP:
+        {
+            env_switch_context(env, CONTEXT_LOOP);
+
+            while (1)
+            {
+                ASTNode *current = node->uncond_loop.branch;
+                ShdValue last = { .value_type = VALUE_INTEGER, .value_data.int_value = 0, .signal = SIGNAL_NORMAL };
+
+                while (current)
+                {
+                    last = eval(env, current->statement_list.first);
+
+                    if (last.signal == SIGNAL_BREAK)
+                    {
+                        env_switch_context(env, CONTEXT_GLOBAL);
+                        return last;
+                    }
+                    else if (last.signal == SIGNAL_CONTINUE)
+                        break;
+
+                    current = current->statement_list.next;
+                }
+
+                if (last.signal == SIGNAL_CONTINUE)
+                    continue;
+            }
+
+            env_switch_context(env, CONTEXT_GLOBAL);
+
+            ShdValue dummy = { .value_type = VALUE_INTEGER, .value_data.int_value = 0, .signal = SIGNAL_NORMAL };
+            return dummy;
+        }
+
+        case AST_LOOP_CONTROL:
+        {
+            ShdValue result = { .value_type = VALUE_INTEGER, .value_data.int_value = 0, .signal = SIGNAL_NORMAL };
+
+            switch ((int)node->loop_control.type)
+            {
+                case LOOPCTRL_BREAK:
+                    if (env->context != CONTEXT_LOOP)
+                        error_context(CERR_BREAK);
+                    env->context = CONTEXT_GLOBAL;
+                    result.signal = SIGNAL_BREAK;
+                    break;
+
+                case LOOPCTRL_CONTINUE:
+                    if (env->context != CONTEXT_LOOP)
+                        error_context(CERR_CONTINUE);
+                    result.signal = SIGNAL_CONTINUE;
+                    break;
+            }
+
+            return result;
         }
 
         default: error_ast();

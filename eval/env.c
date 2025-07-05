@@ -11,6 +11,7 @@ Env env_init()
     Env env;
 
     env.variable_pointer = -1;
+    env.context = CONTEXT_GLOBAL;
 
     return env;
 }
@@ -102,21 +103,43 @@ void env_edit_variable(Env *env, VariableEditModes mode, ShdVariable new_var)
                 case VEDIT_AND:
                     if (var->value.value_type == VALUE_INTEGER)
                         var->value.value_data.int_value &= new_var.value.value_data.int_value;
+                    else if (var->value.value_type == VALUE_FLOAT)
+                        error_math(MERR_TYPE, NULL, NULL, NULL);
                     break;
 
                 case VEDIT_OR:
                     if (var->value.value_type == VALUE_INTEGER)
                         var->value.value_data.int_value |= new_var.value.value_data.int_value;
+                    else if (var->value.value_type == VALUE_FLOAT)
+                        error_math(MERR_TYPE, NULL, NULL, NULL);
                     break;
 
                 case VEDIT_XOR:
                     if (var->value.value_type == VALUE_INTEGER)
                         var->value.value_data.int_value ^= new_var.value.value_data.int_value;
+                    else if (var->value.value_type == VALUE_FLOAT)
+                        error_math(MERR_TYPE, NULL, NULL, NULL);
                     break;
 
                 case VEDIT_BITWISE:
                     if (var->value.value_type == VALUE_INTEGER)
                         var->value.value_data.int_value = ~(var->value.value_data.int_value);
+                    else if (var->value.value_type == VALUE_FLOAT)
+                        error_math(MERR_TYPE, NULL, NULL, NULL);
+                    break;
+
+                case VEDIT_LSHIFT:
+                    if (var->value.value_type == VALUE_INTEGER)
+                        var->value.value_data.int_value <<= var->value.value_data.int_value;
+                    else if (var->value.value_type == VALUE_FLOAT)
+                        error_math(MERR_TYPE, NULL, NULL, NULL);
+                    break;
+
+                case VEDIT_RSHIFT:
+                    if (var->value.value_type == VALUE_INTEGER)
+                        var->value.value_data.int_value >>= var->value.value_data.int_value;
+                    else if (var->value.value_type == VALUE_FLOAT)
+                        error_math(MERR_TYPE, NULL, NULL, NULL);
                     break;
 
                 default:
@@ -138,4 +161,14 @@ ShdVariable *env_get_variable(Env *env, char *name)
     }
 
     return NULL;
+}
+
+ContextTypes env_get_context(Env *env)
+{
+    return env->context;
+}
+
+void env_switch_context(Env *env, ContextTypes context)
+{
+    env->context = context;
 }

@@ -40,7 +40,16 @@ typedef enum
     T_ANDEQ,
     T_OREQ,
     T_XOREQ,
-    T_BITWEQ
+    T_BITWEQ,
+    T_LSHIFT,
+    T_RSHIFT,
+    T_LSHIFTEQ,
+    T_RSHIFTEQ,
+    T_KW_WHILE,
+    T_KW_UNTIL,
+    T_KW_FOREVER,
+    T_KW_BREAK,
+    T_KW_CONTINUE
 } TokenType;
 
 typedef struct
