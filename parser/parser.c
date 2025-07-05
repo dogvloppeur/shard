@@ -9,6 +9,7 @@
 #include <string.h>
 #include <utils/error.h>
 #include <utils/color.h>
+#include <utils/convert.h>
 
 ASTNode *parse(const char *source)
 {
@@ -30,55 +31,6 @@ void parser_expect(Parser *parser, TokenType type)
     if (parser->current_token.type != (int)type)
         error_syntax(SERR_EXPECT, token_type_names[parser->current_token.type], parser->current_token.line);
     parser_advance(parser);
-}
-
-BinopTypes token_type_to_binop(TokenType type)
-{
-    switch ((int)type)
-    {
-        case T_PLUS: return BINOP_PLUS;
-        case T_MINUS: return BINOP_MINUS;
-        case T_STAR: return BINOP_TIMES;
-        case T_SLASH: return BINOP_DIVIDE;
-        case T_EQEQUAL: return BINOP_ISEQUAL;
-        case T_NOTEQUAL: return BINOP_ISNOTEQUAL;
-        case T_LESSTHAN: return BINOP_ISLESSER;
-        case T_LESSTHANEQ: return BINOP_ISLESSEREQUAL;
-        case T_GREATTHAN: return BINOP_ISGREATER;
-        case T_GREATTHANEQ: return BINOP_ISGREATEREQUAL;
-        case T_KW_AND: return BINOP_AND;
-        case T_KW_OR: return BINOP_OR;
-        case T_XOR: return BINOP_XOR;
-        case T_ANDBIT: return BINOP_ANDBIT;
-        case T_ORBIT: return BINOP_ORBIT;
-    }
-}
-
-UnopTypes token_type_to_unop(TokenType type)
-{
-    switch ((int)type)
-    {
-        case T_PLUS: return UNOP_PLUS;
-        case T_MINUS: return UNOP_MINUS;
-        case T_KW_NOT: return UNOP_NOT;
-        case T_BITWISE: return UNOP_BITWISE;
-    }
-}
-
-AssignmentTypes token_type_to_assignment(TokenType type)
-{
-    switch ((int)type)
-    {
-        case T_EQUAL: return ASSIGNMENT_EQUAL;
-        case T_PLUSEQ: return ASSIGNMENT_PLUSEQ;
-        case T_MINUSEQ: return ASSIGNMENT_MINUSEQ;
-        case T_STAREQ: return ASSIGNMENT_STAREQ;
-        case T_SLASHEQ: return ASSIGNMENT_SLASHEQ;
-        case T_ANDEQ: return ASSIGNMENT_ANDEQ;
-        case T_OREQ: return ASSIGNMENT_OREQ;
-        case T_XOREQ: return ASSIGNMENT_XOREQ;
-        case T_BITWEQ: return ASSIGNMENT_BITWEQ;
-    }
 }
 
 ASTNode *parse_factor(Parser *parser)
@@ -138,10 +90,11 @@ ASTNode *parse_term(Parser *parser)
     return node;
 }
 
-ASTNode *parse_expression(Parser *parser)
+ASTNode *parse_shift(Parser *parser)
 {
     ASTNode *node = parse_term(parser);
-    while (parser->current_token.type == T_PLUS || parser->current_token.type == T_MINUS)
+
+    while (parser->current_token.type == T_LSHIFT || parser->current_token.type == T_RSHIFT)
     {
         BinopTypes operator = token_type_to_binop(parser->current_token.type);
         int line = parser->current_token.line;
@@ -150,13 +103,29 @@ ASTNode *parse_expression(Parser *parser)
         ASTNode *right = parse_term(parser);
         node = AST_new_binop(operator, node, right, line, column);
     }
+
+    return node;
+}
+
+ASTNode *parse_expression(Parser *parser)
+{
+    ASTNode *node = parse_shift(parser);
+    while (parser->current_token.type == T_PLUS || parser->current_token.type == T_MINUS)
+    {
+        BinopTypes operator = token_type_to_binop(parser->current_token.type);
+        int line = parser->current_token.line;
+        int column = parser->current_token.column;
+        parser_advance(parser);
+        ASTNode *right = parse_shift(parser);
+        node = AST_new_binop(operator, node, right, line, column);
+    }
     return node;
 }
 
 ASTNode *parse_comparison(Parser *parser)
 {
     ASTNode *node = parse_expression(parser);
-    while (is_token_assignment_operator(parser->current_token.type))
+    while (is_token_comparison_operator(parser->current_token.type))
     {
         BinopTypes operator = token_type_to_binop(parser->current_token.type);
         int line = parser->current_token.line;
@@ -270,6 +239,12 @@ ASTNode *parse_statement(Parser *parser)
     }
     else if (parser->current_token.type == T_KW_IF)
         return parse_cond_if(parser);
+    else if (parser->current_token.type == T_KW_WHILE)
+        return parse_loop_while(parser);
+    else if (parser->current_token.type == T_KW_UNTIL)
+        return parse_loop_until(parser);
+    else if (parser->current_token.type == T_KW_FOREVER)
+        return parse_loop_forever(parser);
     else
         return parse_bool(parser);
 }
@@ -319,4 +294,65 @@ ASTNode *parse_cond_if(Parser *parser)
     }
 
     return AST_new_cond_if(condition, then_branch, line, column);
+}
+
+ASTNode *parse_loop_while(Parser *parser)
+{
+    int line = parser->current_token.line;
+    int column = parser->current_token.column;
+
+    parser_expect(parser, T_KW_WHILE);
+    ASTNode *condition = parse_bool(parser);
+    parser_expect(parser, T_LBRACE);
+    ASTNode *branch = parse_statement_list(parser);
+    parser_expect(parser, T_RBRACE);
+
+    return AST_new_cond_loop(CONDLOOP_WHILE, condition, branch, line, column);
+}
+
+ASTNode *parse_loop_until(Parser *parser)
+{
+    int line = parser->current_token.line;
+    int column = parser->current_token.column;
+
+    parser_expect(parser, T_KW_UNTIL);
+    ASTNode *condition = parse_bool(parser);
+    parser_expect(parser, T_LBRACE);
+    ASTNode *branch = parse_statement_list(parser);
+    parser_expect(parser, T_RBRACE);
+
+    return AST_new_cond_loop(CONDLOOP_UNTIL, condition, branch, line, column);
+}
+
+ASTNode *parse_loop_forever(Parser *parser)
+{
+    int line = parser->current_token.line;
+    int column = parser->current_token.column;
+
+    parser_expect(parser, T_KW_FOREVER);
+    parser_expect(parser, T_LBRACE);
+    ASTNode *branch = parse_statement_list(parser);
+    parser_expect(parser, T_RBRACE);
+
+    return AST_new_uncond_loop(branch, line, column);
+}
+
+ASTNode *parse_loopctrl_break(Parser *parser)
+{
+    int line = parser->current_token.line;
+    int column = parser->current_token.column;
+
+    parser_expect(parser, T_KW_BREAK);
+
+    return AST_new_loop_control(LOOPCTRL_BREAK, line, column);
+}
+
+ASTNode *parse_loopctrl_continue(Parser *parser)
+{
+    int line = parser->current_token.line;
+    int column = parser->current_token.column;
+
+    parser_expect(parser, T_KW_CONTINUE);
+
+    return AST_new_loop_control(LOOPCTRL_CONTINUE, line, column);
 }

@@ -130,6 +130,44 @@ ASTNode *AST_new_cond_if_else(ASTNode *condition, ASTNode *then_branch, ASTNode 
     return node;
 }
 
+ASTNode *AST_new_cond_loop(CondLoopTypes type, ASTNode *condition, ASTNode *branch, int line, int column)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    node->type = AST_COND_LOOP;
+    node->cond_loop.type = type;
+    node->cond_loop.condition = condition;
+    node->cond_loop.branch = branch;
+    node->line = line;
+    node->column = column;
+
+    return node;
+}
+
+ASTNode *AST_new_uncond_loop(ASTNode *branch, int line, int column)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    node->type = AST_UNCOND_LOOP;
+    node->uncond_loop.branch = branch;
+    node->line = line;
+    node->column = column;
+
+    return node;
+}
+
+ASTNode *AST_new_loop_control(LoopControlTypes type, int line, int column)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    node->type = AST_LOOP_CONTROL;
+    node->loop_control.type = type;
+    node->line = line;
+    node->column = column;
+
+    return node;
+}
+
 void AST_free(ASTNode *node)
 {
     if (!node) return;
@@ -138,12 +176,58 @@ void AST_free(ASTNode *node)
     {
         case AST_INTEGER:
             break;
-        
+
+        case AST_FLOAT:
+            break;
+
         case AST_BINOP:
             AST_free(node->binop.left);
             AST_free(node->binop.right);
             break;
+
+        case AST_UNOP:
+            AST_free(node->unop.value);
+            break;
+
+        case AST_STATEMENT_LIST:
+            AST_free(node->statement_list.first);
+            AST_free(node->statement_list.next);
+            break;
+
+        case AST_VAR_DECLARATION:
+            AST_free(node->var_declaration.value);
+            break;
+
+        case AST_VAR_ASSIGNMENT:
+            AST_free(node->var_assignment.value);
+            break;
+
+        case AST_VAR_ACCESS:
+            break;
+
+        case AST_COND_IF:
+            AST_free(node->cond_if.condition);
+            AST_free(node->cond_if.branch);
+            break;
+
+        case AST_COND_IF_ELSE:
+            AST_free(node->cond_if_else.condition);
+            AST_free(node->cond_if_else.then_branch);
+            AST_free(node->cond_if_else.else_branch);
+            break;
+
+        case AST_COND_LOOP:
+            AST_free(node->cond_loop.condition);
+            AST_free(node->cond_loop.branch);
+            break;
+
+        case AST_UNCOND_LOOP:
+            AST_free(node->uncond_loop.branch);
+            break;
+
+        default:
+            break;
     }
 
-    free (node);
+    free(node);
 }

@@ -1,3 +1,4 @@
+#include "cli/include/cli.h"
 #include <utils/info.h>
 #include "include/repl.h"
 #include <stdio.h>
@@ -7,19 +8,6 @@
 #include "parser/include/ast.h"
 #include "parser/include/parser.h"
 #include <lexer/include/lexer.h>
-
-#ifndef _MSC_VER
-// strndup is not available on Windows, so we define it if missing
-char *strndup(const char *s, size_t n) {
-    size_t len = 0;
-    while (len < n && s[len]) len++;
-    char *result = (char *)malloc(len + 1);
-    if (!result) return NULL;
-    memcpy(result, s, len);
-    result[len] = '\0';
-    return result;
-}
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -44,6 +32,7 @@ int main(int argc, char *argv[])
             char *source = malloc(strlen(line) + 2);
             source[0] = ' ';
             strcpy(source + 1, line);
+            lex(source);
             ASTNode *ast = parse(source);
 
             eval_and_print_statements(&env, ast);
@@ -54,7 +43,7 @@ int main(int argc, char *argv[])
     }
     else if (argc > 1)
     {
-        if (strcmp(argv[1], "-c") == 0)
+        if (strcmp(argv[1], OPT_CODE) == 0)
         {
             if (argc < 3)
             {
@@ -76,16 +65,18 @@ int main(int argc, char *argv[])
             AST_free(ast);
             free(source);
         }
-        else if (strcmp(argv[1], "--help") == 0)
+        else if (strcmp(argv[1], OPT_HELP) == 0)
         {
             printf("no argument:\t\tREPL\n"
-                   "--help\t\tDisplay this message\n"
-                   "--version\t\tDisplay the version installed on your System\n"
-                   "--license\t\tDisplay the name of the license\n"
-                   "-c <code>\t\tRun code from the CLI\n"
-                   "-f / --file\t\tExecute source code from a file\n");
+                   OPT_HELP "\t\tDisplay this message\n"
+                   OPT_VERSION "\t\tDisplay the version installed on your System\n"
+                   OPT_LICENSE "\t\tDisplay the name of the license\n"
+                   OPT_CREDITS "\t\tDisplay the credits (special thanks...)\n"
+                   OPT_LINK "\t\tDisplay " LANG_NAME "-related links\n"
+                   OPT_CODE" <code>\t\tRun code from the CLI\n"
+                   OPT_FILE_SHORT " / " OPT_FILE_LONG "\t\tExecute source code from a file\n");
         }
-        else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--file") == 0)
+        else if (strcmp(argv[1], OPT_FILE_SHORT) == 0 || strcmp(argv[1], OPT_FILE_LONG) == 0)
         {
             FILE *file = fopen(argv[2], "r");
             if (!file)
@@ -113,13 +104,18 @@ int main(int argc, char *argv[])
             AST_free(ast);
             free(source);
         }
-        else if (strcmp(argv[1], "--version") == 0)
+        else if (strcmp(argv[1], OPT_VERSION) == 0)
             printf("Version %s\n", LANG_VERSION);
-        else if (strcmp(argv[1], "--license") == 0)
+        else if (strcmp(argv[1], OPT_LICENSE) == 0)
             printf("Released under %s license\n", LANG_LICENSE);
+        else if (strcmp(argv[1], OPT_CREDITS) == 0)
+            printf("tayoky:\nC1: Ported Shard to the Stanix operating system\n\n"
+                           "dogvloppeur:\nC1: Made build files for Windows\n\n");
+        else if (strcmp(argv[1], OPT_LINK) == 0)
+            printf(LANG_LINK_GH"\n");
         else
         {
-            fprintf(stderr, "Invalid option. Use --help for a list of available options.\n");
+            fprintf(stderr, "Invalid option. Use" OPT_HELP "for a list of available options.\n");
             exit(1);
         }
     }

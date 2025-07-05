@@ -72,3 +72,17 @@ void error_ast()
     fprintf(stderr, RED_BOLD "ERROR:" RESET " AST error: unknow AST node\n");
     exit(1);
 }
+
+void error_context(ContextErrorTypes context)
+{
+    switch ((int)context)
+    {
+        case CERR_BREAK:
+            fprintf(stderr, RED_BOLD "ERROR:" RESET " context error: break outside of loop\n");
+            exit(1);
+
+        case CERR_CONTINUE:
+            fprintf(stderr, RED_BOLD "ERROR:" RESET " context error: continue outside of loop\n");
+            exit(1);
+    }
+}

@@ -6,6 +6,13 @@ typedef enum
     VALUE_FLOAT
 } ShdValueType;
 
+typedef enum
+{
+    SIGNAL_NORMAL,
+    SIGNAL_BREAK,
+    SIGNAL_CONTINUE
+} ExecSignal;
+
 typedef union
 {
     int int_value;
@@ -16,6 +23,7 @@ typedef struct
 {
     ShdValueType value_type;
     ShdValueData value_data;
+    ExecSignal signal;
 } ShdValue;
 
 typedef struct
