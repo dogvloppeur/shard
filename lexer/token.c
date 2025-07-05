@@ -1,10 +1,9 @@
 #include <ctype.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "include/token.h"
-#include "include/token_type.h"
-#include "lexer/include/cursor.h"
+#include <lexer/include/token.h>
+#include <lexer/include/token_type.h>
+#include <lexer/include/cursor.h>
 #include <utils/error.h>
 
 Token get_next_token(Cursor *cursor)

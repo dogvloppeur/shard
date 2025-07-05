@@ -1,11 +1,11 @@
-#include "include/eval.h"
-#include "include/variable.h"
-#include "lexer/include/token_type.h"
-#include "parser/include/ast.h"
-#include "include/env.h"
-#include "utils/error.h"
+#include <eval/include/eval.h>
+#include <eval/include/variable.h>
+#include <parser/include/ast.h>
+#include <eval/include/env.h>
+#include <utils/error.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 ShdValue eval(Env *env, ASTNode *node)
 {
@@ -171,7 +171,7 @@ ShdValue eval(Env *env, ASTNode *node)
                 value.value_data.int_value = 0;
             }
 
-            ShdVariable variable = { .name = name, .value = value };
+            ShdVariable variable = { .name = strdup(name), .value = value };
             env_add_variable(env, variable);
 
             return value;

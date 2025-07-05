@@ -1,4 +1,4 @@
-#include "include/token_type.h"
+#include <lexer/include/token_type.h>
 #include <stddef.h>
 #include <string.h>
 

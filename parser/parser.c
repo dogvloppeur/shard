@@ -1,9 +1,9 @@
-#include "include/parser.h"
-#include "lexer/include/cursor.h"
-#include "lexer/include/token.h"
-#include "lexer/include/token_type.h"
-#include "parser/include/ast.h"
-#include "parser/include/checkers.h"
+#include <parser/include/parser.h>
+#include <lexer/include/cursor.h>
+#include <lexer/include/token.h>
+#include <lexer/include/token_type.h>
+#include <parser/include/ast.h>
+#include <parser/include/checkers.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

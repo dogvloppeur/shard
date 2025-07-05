@@ -1,4 +1,4 @@
-#include "include/cursor.h"
+#include <lexer/include/cursor.h>
 
 Cursor cursor_init(int line, int column, char current_char, char *source, size_t position)
 {

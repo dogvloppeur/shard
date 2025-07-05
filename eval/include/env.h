@@ -1,35 +1,44 @@
 #pragma once
 
-#include "eval/include/variable.h"
+#include <eval/include/variable.h>
 #include <stdbool.h>
 
-#define MAX_VARIABLES                       1024
+#define DEFAULT_MAX_VARIABLES               8
 
+/*
+    Every variable edition modes.
+*/
 typedef enum
 {
-    VEDIT_SET,
-    VEDIT_ADD,
-    VEDIT_SUB,
-    VEDIT_MUL,
-    VEDIT_DIV,
-    VEDIT_AND,
-    VEDIT_OR,
-    VEDIT_XOR,
-    VEDIT_BITWISE,
-    VEDIT_LSHIFT,
-    VEDIT_RSHIFT
+    VEDIT_SET,          // =
+    VEDIT_ADD,          // +=
+    VEDIT_SUB,          // -=
+    VEDIT_MUL,          // *=
+    VEDIT_DIV,          // /=
+    VEDIT_AND,          // &=
+    VEDIT_OR,           // |=
+    VEDIT_XOR,          // ^=
+    VEDIT_BITWISE,      // ~=
+    VEDIT_LSHIFT,       // <<=
+    VEDIT_RSHIFT        // >>=
 } VariableEditModes;
 
+/*
+    Every context types.
+*/
 typedef enum
 {
     CONTEXT_GLOBAL,
     CONTEXT_LOOP
 } ContextTypes;
 
+/*
+    Represents the environment.
+*/
 typedef struct
 {
-    ShdVariable variables[MAX_VARIABLES];
-    int variable_pointer;
+    ShdVariable *variables;
+    int variable_count, max_variables;
     ContextTypes context;
 } Env;
 
@@ -41,3 +50,4 @@ void env_edit_variable(Env *env, VariableEditModes mode, ShdVariable variable);
 ShdVariable *env_get_variable(Env *env, char *name);
 ContextTypes env_get_context(Env *env);
 void env_switch_context(Env *env, ContextTypes context);
+void env_destroy(Env *env);

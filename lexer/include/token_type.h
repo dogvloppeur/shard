@@ -1,5 +1,8 @@
 #pragma once
 
+/*
+    List of all the token types.
+*/
 typedef enum
 {
     T_INTEGER,
@@ -52,6 +55,11 @@ typedef enum
     T_KW_CONTINUE
 } TokenType;
 
+/*
+    Represents a keyword.
+    text: the keyword text
+    type: the corresponding token
+*/
 typedef struct
 {
     const char *text;
@@ -61,4 +69,7 @@ typedef struct
 extern const char *token_type_names[];
 extern const Keyword keywords[];
 
+/*
+    Returns T_KW_... or T_IDENTIFIER depending on the given text.
+*/
 TokenType keyword_get_type(const char *identifier);

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "include/ast.h"
+#include <parser/include/ast.h>
 
 ASTNode *AST_new_integer(int value, int line, int column)
 {

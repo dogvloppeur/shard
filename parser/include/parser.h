@@ -2,18 +2,28 @@
 
 #include <lexer/include/cursor.h>
 #include <lexer/include/token.h>
-#include "ast.h"
+#include <parser/include/ast.h>
 #include <lexer/include/token_type.h>
 
+/*
+    Represents the parser.
+*/
 typedef struct
 {
     Cursor cursor;
     Token current_token;
 } Parser;
 
-ASTNode *parse(const char *source);
 void parser_advance(Parser *parser);
+/*
+    Expect a given token. Make an error if the expected token is not the current token.
+*/
 void parser_expect(Parser *parser, TokenType type);
+
+/*
+    Functions used to parse source code.
+*/
+ASTNode *parse(const char *source);
 ASTNode *parse_factor(Parser *parser);
 ASTNode *parse_term(Parser *parser);
 ASTNode *parse_var_access(Parser *parser);

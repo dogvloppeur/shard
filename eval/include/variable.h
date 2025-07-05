@@ -1,11 +1,17 @@
 #pragma once
 
+/*
+    Every value types.
+*/
 typedef enum
 {
     VALUE_INTEGER,
     VALUE_FLOAT
 } ShdValueType;
 
+/*
+    Every execution signals.
+*/
 typedef enum
 {
     SIGNAL_NORMAL,
@@ -26,6 +32,11 @@ typedef struct
     ExecSignal signal;
 } ShdValue;
 
+/*
+    Represents a variable.
+    name: the variable's name
+    value: the variable's value
+*/
 typedef struct
 {
     char *name;

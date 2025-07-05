@@ -1,9 +1,9 @@
 #include <stdio.h>
 
-#include "include/lexer.h"
-#include "include/cursor.h"
-#include "include/token.h"
-#include "include/token_type.h"
+#include <lexer/include/lexer.h>
+#include <lexer/include/cursor.h>
+#include <lexer/include/token.h>
+#include <lexer/include/token_type.h>
 
 extern const char *token_type_names[];
 

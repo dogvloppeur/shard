@@ -1,5 +1,8 @@
 #pragma once
 
+/*
+    Every AST nodes.
+*/
 typedef enum
 {
     AST_INTEGER,
@@ -17,6 +20,9 @@ typedef enum
     AST_LOOP_CONTROL
 } ASTNodeTypes;
 
+/*
+    Every binary operations.
+*/
 typedef enum
 {
     BINOP_PLUS,
@@ -39,6 +45,9 @@ typedef enum
     BINOP_RSHIFT
 } BinopTypes;
 
+/*
+    Every unary operations.
+*/
 typedef enum
 {
     UNOP_PLUS,
@@ -47,6 +56,9 @@ typedef enum
     UNOP_BITWISE
 } UnopTypes;
 
+/*
+    Every assingment operations.
+*/
 typedef enum
 {
     ASSIGNMENT_EQUAL,
@@ -62,12 +74,18 @@ typedef enum
     ASSIGNMENT_RSHIFTEQ
 } AssignmentTypes;
 
+/*
+    Every conditional loops.
+*/
 typedef enum
 {
     CONDLOOP_WHILE,
     CONDLOOP_UNTIL
 } CondLoopTypes;
 
+/*
+    Every loop control instructions.
+*/
 typedef enum
 {
     LOOPCTRL_BREAK,
@@ -76,6 +94,12 @@ typedef enum
 
 typedef struct ASTNode ASTNode;
 
+/*
+    Represents an AST node.
+    type: the type of the AST node
+    line: the line where the node is
+    column: the column where the node is
+*/
 struct ASTNode
 {
     ASTNodeTypes type;
@@ -162,6 +186,9 @@ struct ASTNode
     };
 };
 
+/*
+    Functions used to generate AST nodes.
+*/
 ASTNode *AST_new_integer(int value, int line, int column);
 ASTNode *AST_new_binop(BinopTypes operator, ASTNode *left, ASTNode *right, int line, int column);
 ASTNode *AST_new_statement_list(ASTNode *first, ASTNode *next, int line, int column);
@@ -176,4 +203,7 @@ ASTNode *AST_new_cond_loop(CondLoopTypes type, ASTNode *condition, ASTNode *bran
 ASTNode *AST_new_uncond_loop(ASTNode *branch, int line, int column);
 ASTNode *AST_new_loop_control(LoopControlTypes type, int line, int column);
 
+/*
+    Free the AST.
+*/
 void AST_free(ASTNode *node);

@@ -1,5 +1,5 @@
-#include "include/env.h"
-#include "eval/include/variable.h"
+#include <eval/include/env.h>
+#include <eval/include/variable.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -10,7 +10,9 @@ Env env_init()
 {
     Env env;
 
-    env.variable_pointer = -1;
+    env.variables = malloc(DEFAULT_MAX_VARIABLES * sizeof(ShdVariable));
+    env.variable_count = 0;
+    env.max_variables = DEFAULT_MAX_VARIABLES;
     env.context = CONTEXT_GLOBAL;
 
     return env;
@@ -18,7 +20,7 @@ Env env_init()
 
 bool env_find_variable(Env *env, char *name)
 {
-    for (int i = 0; i <= env->variable_pointer; i++)
+    for (int i = 0; i < env->variable_count; i++)
     {
         if (strcmp(env->variables[i].name, name) == 0)
             return true;
@@ -28,7 +30,7 @@ bool env_find_variable(Env *env, char *name)
 
 int env_find_variable_index(Env *env, char *name)
 {
-    for (int i = 0; i <= env->variable_pointer; i++)
+    for (int i = 0; i < env->variable_count; i++)
     {
         if (strcmp(env->variables[i].name, name) == 0)
             return i;
@@ -41,16 +43,23 @@ void env_add_variable(Env *env, ShdVariable variable)
     if (env_find_variable(env, variable.name))
         error_variable(VERR_REDECLARE, variable.name);
 
-    if (env->variable_pointer >= MAX_VARIABLES - 1)
-        error_variable(VERR_NOSPACE, variable.name);
+    if (env->variable_count >= env->max_variables)
+    {
+        size_t new_size = env->max_variables * 2;
+        ShdVariable *new_vars = realloc(env->variables, new_size * sizeof(ShdVariable));
 
-    env->variable_pointer++;
-    env->variables[env->variable_pointer] = variable;
+        env->variables = new_vars;
+        env->max_variables = new_size;
+    }
+
+    variable.name = strdup(variable.name);
+
+    env->variables[env->variable_count++] = variable;
 }
 
 void env_edit_variable(Env *env, VariableEditModes mode, ShdVariable new_var)
 {
-    for (int i = 0; i <= env->variable_pointer; i++)
+    for (int i = 0; i < env->variable_count; i++)
     {
         if (strcmp(env->variables[i].name, new_var.name) == 0)
         {
@@ -154,7 +163,7 @@ void env_edit_variable(Env *env, VariableEditModes mode, ShdVariable new_var)
 
 ShdVariable *env_get_variable(Env *env, char *name)
 {
-    for (int i = 0; i <= env->variable_pointer; i++)
+    for (int i = 0; i < env->variable_count; i++)
     {
         if (strcmp(env->variables[i].name, name) == 0)
             return &env->variables[i];
@@ -171,4 +180,15 @@ ContextTypes env_get_context(Env *env)
 void env_switch_context(Env *env, ContextTypes context)
 {
     env->context = context;
+}
+
+void env_destroy(Env *env)
+{
+    for (int i = 0; i < env->variable_count; i++)
+        free(env->variables[i].name);
+
+    free(env->variables);
+    env->variables = NULL;
+    env->variable_count = 0;
+    env->max_variables = 0;
 }

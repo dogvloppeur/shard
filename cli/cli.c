@@ -1,12 +1,12 @@
-#include "cli/include/cli.h"
+#include <cli/include/cli.h>
 #include <utils/info.h>
-#include "include/repl.h"
+#include <cli/include/repl.h>
 #include <stdio.h>
 #include <string.h>
-#include "eval/include/env.h"
+#include <eval/include/env.h>
 #include <stdlib.h>
-#include "parser/include/ast.h"
-#include "parser/include/parser.h"
+#include <parser/include/ast.h>
+#include <parser/include/parser.h>
 #include <lexer/include/lexer.h>
 
 int main(int argc, char *argv[])
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
             char *source = malloc(strlen(line) + 2);
             source[0] = ' ';
             strcpy(source + 1, line);
-            lex(source);
+            //lex(source);
             ASTNode *ast = parse(source);
 
             eval_and_print_statements(&env, ast);
