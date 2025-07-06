@@ -43,6 +43,4 @@ void eval_and_print_statements(Env *env, ASTNode *node)
         else
             printf("%f\n", result.value_data.float_value);
     }
-
-    env_destroy(env);
 }
